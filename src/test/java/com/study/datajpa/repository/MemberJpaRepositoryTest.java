@@ -1,6 +1,8 @@
 package com.study.datajpa.repository;
 
+import com.study.datajpa.dto.MemberDto;
 import com.study.datajpa.entity.Member;
+import com.study.datajpa.entity.Team;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,14 +21,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MemberJpaRepositoryTest {
 
     @Autowired
-    private MemberRepository repository;
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private TeamRepository teamRepository;
 
     @Test
     public void testMember() {
         Member member = new Member("hancoding");
-        Member savedMember = repository.save(member);
+        Member savedMember = memberRepository.save(member);
 
-        Member findMember = repository.findById(member.getId())
+        Member findMember = memberRepository.findById(member.getId())
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 회원입니다."));
 
         assertThat(findMember.getId())
@@ -42,12 +47,12 @@ class MemberJpaRepositoryTest {
         // given
         Member memberA = new Member("memberA");
         Member memberB = new Member("memberB");
-        repository.save(memberA);
-        repository.save(memberB);
+        memberRepository.save(memberA);
+        memberRepository.save(memberB);
 
         // when
-        Optional<Member> findMemberA = repository.findById(memberA.getId());
-        Optional<Member> findMemberB = repository.findById(memberB.getId());
+        Optional<Member> findMemberA = memberRepository.findById(memberA.getId());
+        Optional<Member> findMemberB = memberRepository.findById(memberB.getId());
 
         // then
         assertThat(findMemberA
@@ -60,14 +65,50 @@ class MemberJpaRepositoryTest {
     public void findByMemberNameAndAge() throws Exception {
         Member memberA = new Member("memberA", 10);
         Member memberB = new Member("memberA", 20);
-        repository.save(memberA);
-        repository.save(memberB);
+        memberRepository.save(memberA);
+        memberRepository.save(memberB);
 
-        List<Member> result = repository.findByMemberNameAndAgeGreaterThan("memberA", 15);
+        List<Member> result = memberRepository.findByMemberNameAndAgeGreaterThan("memberA", 15);
 
         assertThat(result.get(0).getMemberName())
                 .isEqualTo("memberA");
         assertThat(result.get(0).getAge())
                 .isEqualTo(20);
+    }
+
+    @Test
+    public void testQuery() {
+        Member memberA = new Member("memberA", 10);
+        Member memberB = new Member("memberB", 20);
+        memberRepository.save(memberA);
+        memberRepository.save(memberB);
+
+        List<Member> findMember = memberRepository.findMember("memberA", 20);
+
+        assertThat(findMember.get(0)).isEqualTo(memberB);
+    }
+
+    @Test
+    public void dtoTest() {
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        Member memberA = new Member("memberA", 10);
+        Member memberB = new Member("memberB", 20);
+        memberA.changeTeam(teamA);
+        memberB.changeTeam(teamB);
+        memberRepository.save(memberA);
+        memberRepository.save(memberB);
+
+
+        List<MemberDto> memberDto = memberRepository.findMemberDto();
+
+        for (MemberDto dto : memberDto) {
+            System.out.println("=== name : " + dto.getMemberName() + " / team : " + dto.getTeamName());
+        }
+
+
     }
 }

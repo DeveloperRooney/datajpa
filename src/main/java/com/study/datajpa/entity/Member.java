@@ -36,6 +36,11 @@ public class Member {
         }
     }
 
+    public Member(String memberName, int age) {
+        this.memberName = memberName;
+        this.age = age;
+    }
+
     public void changeTeam(Team team) {
         if(this.team != null) {
             this.team.getMembers().remove(this);
